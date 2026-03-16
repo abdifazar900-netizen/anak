@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerdas Tangkas Dash - Super Stable</title>
+    <title>Cerdas Tangkas-Anak</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root { --bg-body: #6c5ce7; --bg-card: #ffffff; --primary: #6c5ce7; }
-        body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; padding: 10px; }
-        #game-box { max-width: 500px; margin: auto; background: var(--bg-card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .track { height: 75px; background: #dfe6e9; border-radius: 12px; position: relative; margin: 15px 0; border-bottom: 5px solid #b2bec3; }
-        #player { font-size: 45px; position: absolute; left: 0; transition: left 0.4s ease; z-index: 10; bottom: 5px; }
+        :root { --primary: #6c5ce7; }
+        body { background-color: #6c5ce7; font-family: 'Segoe UI', sans-serif; padding: 15px; color: #2d3436; }
+        #game-box { max-width: 500px; margin: auto; background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .track { height: 70px; background: #dfe6e9; border-radius: 12px; position: relative; margin: 15px 0; border-bottom: 5px solid #b2bec3; }
+        #player { font-size: 40px; position: absolute; left: 0; transition: left 0.4s ease; bottom: 5px; z-index: 10; }
         .finish-line { position: absolute; right: 10px; top: 0; bottom: 0; width: 12px; background: repeating-linear-gradient(45deg, #000, #000 5px, #fff 5px, #fff 10px); }
-        .question-box { background: #f1f2f6; padding: 15px; border-radius: 15px; min-height: 180px; border: 2px solid #eee; }
-        .btn-ans { margin-bottom: 8px; font-weight: bold; border-radius: 12px; transition: 0.2s; padding: 10px; border: 2px solid var(--primary); width: 100%; text-align: center; background: white; color: var(--primary); }
+        .question-box { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 180px; border: 1px solid #ddd; }
+        .btn-ans { margin-bottom: 10px; font-weight: bold; border-radius: 10px; padding: 12px; width: 100%; border: 2px solid var(--primary); background: white; color: var(--primary); }
         .btn-ans:hover { background: var(--primary); color: white; }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(5px);} 75% {transform: translateX(-5px);} }
     </style>
 </head>
 <body>
@@ -23,7 +22,7 @@
 <div id="game-box">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="fw-bold">Skor: <span id="current-score" class="text-primary">0</span></div>
-        <div id="timer" class="fw-bold text-danger">⏱️ <span id="time-left">45</span>s</div>
+        <div class="fw-bold text-danger">⏱️ <span id="time-left">45</span>s</div>
     </div>
 
     <div class="track">
@@ -33,13 +32,13 @@
 
     <div class="question-box text-center">
         <div id="start-screen">
-            <h3 class="mb-3">Cerdas Tangkas Dash 🏁</h3>
+            <h3 class="mb-3">Cerdas Tangkas Anak🏁</h3>
             <input type="text" id="playerName" class="form-control mb-3 text-center" placeholder="Nama Anak">
-            <button type="button" class="btn btn-primary btn-lg w-100" onclick="prosesMulai()">MULAI SEKARANG</button>
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="startNow()">MULAI BALAPAN</button>
         </div>
 
         <div id="quiz-area" style="display: none;">
-            <div class="small fw-bold mb-2">Sisa Soal: <span id="queue-count">0</span></div>
+            <div class="small fw-bold mb-2">Soal Tersisa: <span id="queue-count">0</span></div>
             <h5 id="question-text" class="mb-4 fw-bold">...</h5>
             <div id="options"></div>
         </div>
@@ -47,7 +46,7 @@
 </div>
 
 <audio id="bg-music" loop preload="auto">
-    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg">
 </audio>
 
 <script>
@@ -88,54 +87,63 @@
     ];
 
     let score = 0, timeLeft = 45, gameActive = false, playerPos = 0, timerInterval, currentAns = 0, questionQueue = [], currentIndexInQueue = -1;
-    const bgMusic = document.getElementById('bg-music');
+    const music = document.getElementById('bg-music');
 
+    // Fungsi Suara yang Aman
     function speak(text) {
         if ('speechSynthesis' in window) {
             window.speechSynthesis.cancel();
             const msg = new SpeechSynthesisUtterance(text);
             msg.lang = 'id-ID';
-            msg.pitch = 1.4;
+            msg.pitch = 1.3;
             window.speechSynthesis.speak(msg);
         }
     }
 
-    function prosesMulai() {
+    // FUNGSI UTAMA (Dipicu Klik)
+    function startNow() {
         const nameInput = document.getElementById('playerName');
         const name = nameInput.value.trim() || "Anak Cerdas";
 
-        // Coba putar musik, jika gagal tidak akan menghentikan game
-        bgMusic.volume = 0.2;
-        bgMusic.play().catch(() => console.log("Musik tertunda browser"));
-
-        // Jalankan logika game
-        questionQueue = JSON.parse(JSON.stringify(masterQuestions));
-        score = 0; timeLeft = 45; playerPos = 0; gameActive = true;
-
+        // Tampilkan layar game dulu (PENTING)
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('quiz-area').style.display = 'block';
+
+        // Setup Data
+        questionQueue = [...masterQuestions];
+        score = 0; timeLeft = 45; playerPos = 0; gameActive = true;
+        
         document.getElementById('player').style.left = '0%';
         document.getElementById('current-score').innerText = score;
 
-        speak("Halo " + name + "! Ayo balapan!");
+        // Baru jalankan audio (Gunakan try-catch agar tidak macet)
+        try {
+            music.volume = 0.2;
+            music.play();
+        } catch (e) { console.log("Music play failed"); }
+
+        speak("Ayo " + name + ", mari kita balapan!");
         
-        clearInterval(timerInterval);
         startTimer();
         nextQuestion();
     }
 
     function startTimer() {
+        if (timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
-            if(!gameActive) return;
+            if (!gameActive) return;
             timeLeft--;
             document.getElementById('time-left').innerText = timeLeft;
-            if (timeLeft <= 0) selesaikanGame("Waktu Habis! Skor kamu: " + score);
+            if (timeLeft <= 0) finishGame("Yah, waktu habis! Skor: " + score);
         }, 1000);
     }
 
     function nextQuestion() {
-        if (questionQueue.length === 0) return selesaikanGame("HEBAT! Semua soal terjawab!");
-        
+        if (questionQueue.length === 0) {
+            finishGame("HEBAT! Kamu selesaikan semua soal!");
+            return;
+        }
+
         document.getElementById('queue-count').innerText = questionQueue.length;
         currentIndexInQueue = Math.floor(Math.random() * questionQueue.length);
         const q = questionQueue[currentIndexInQueue];
@@ -148,15 +156,14 @@
         
         q.a.forEach((opt, i) => {
             const btn = document.createElement('button');
-            btn.type = "button";
             btn.className = 'btn btn-ans';
             btn.innerText = opt;
-            btn.onclick = function() { cekJawaban(i); };
+            btn.onclick = () => checkAns(i);
             optionsDiv.appendChild(btn);
         });
     }
 
-    function cekJawaban(idx) {
+    function checkAns(idx) {
         if (!gameActive) return;
 
         if (idx === currentAns) {
@@ -171,21 +178,17 @@
                 playerPos = 0;
                 setTimeout(() => { document.getElementById('player').style.left = '0%'; }, 400);
             }
-            setTimeout(nextQuestion, 400);
+            setTimeout(nextQuestion, 500);
         } else {
             speak("Salah!");
-            document.getElementById('game-box').style.animation = 'shake 0.2s';
-            setTimeout(() => { 
-                document.getElementById('game-box').style.animation = ''; 
-                nextQuestion(); 
-            }, 500);
+            setTimeout(nextQuestion, 800);
         }
     }
 
-    function selesaikanGame(msg) {
+    function finishGame(msg) {
         gameActive = false;
         clearInterval(timerInterval);
-        bgMusic.pause();
+        music.pause();
         alert(msg);
         location.reload();
     }
