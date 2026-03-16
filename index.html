@@ -3,27 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerdas Tangkas Dash - Perbaikan Sistem</title>
+    <title>Cerdas Tangkas Dash - Fix Click</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root { --bg-body: #a29bfe; --bg-card: #ffffff; --primary: #6c5ce7; }
-        [data-theme="dark"] { --bg-body: #1a1a2e; --bg-card: #16213e; --primary: #0f3460; }
-        body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; transition: 0.3s; padding: 10px; }
-        #game-box { max-width: 600px; margin: auto; background: var(--bg-card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
-        .track { height: 80px; background: #dfe6e9; border-radius: 10px; position: relative; margin: 20px 0; border-bottom: 4px solid #b2bec3; overflow: hidden; }
-        #player { font-size: 45px; position: absolute; left: 0; transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 10; }
+        body { background-color: var(--bg-body); font-family: 'Segoe UI', sans-serif; padding: 10px; }
+        #game-box { max-width: 500px; margin: auto; background: var(--bg-card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .track { height: 70px; background: #dfe6e9; border-radius: 10px; position: relative; margin: 15px 0; border-bottom: 4px solid #b2bec3; }
+        #player { font-size: 40px; position: absolute; left: 0; transition: left 0.4s ease; z-index: 10; bottom: 5px; }
         .finish-line { position: absolute; right: 10px; top: 0; bottom: 0; width: 10px; background: repeating-linear-gradient(45deg, #000, #000 5px, #fff 5px, #fff 10px); }
-        .question-box { background: rgba(0,0,0,0.05); padding: 20px; border-radius: 15px; min-height: 200px; }
-        .btn-ans { margin: 5px; font-weight: bold; border-radius: 12px; border: 2px solid var(--primary); transition: 0.2s; }
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(8px);} 75% {transform: translateX(-8px);} }
+        .question-box { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 200px; border: 1px solid #eee; }
+        .btn-ans { margin-bottom: 10px; font-weight: bold; border-radius: 12px; transition: 0.2s; padding: 12px; }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(5px);} 75% {transform: translateX(-5px);} }
     </style>
 </head>
 <body>
 
 <div id="game-box">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>Skor: <span id="current-score" class="fw-bold fs-4">0</span></div>
-        <div id="timer" class="fw-bold text-danger fs-4">⏱️ <span id="time-left">45</span>s</div>
+        <div class="fw-bold">Skor: <span id="current-score" class="text-primary">0</span></div>
+        <div id="timer" class="fw-bold text-danger">⏱️ <span id="time-left">45</span>s</div>
     </div>
 
     <div class="track">
@@ -34,57 +33,31 @@
     <div class="question-box text-center">
         <div id="start-screen">
             <h3 class="mb-3">Cerdas Tangkas Dash 🏁</h3>
-            <p class="small text-muted">Pastikan Volume HP Nyala ya!</p>
-            <input type="text" id="playerName" class="form-control mb-3 text-center" placeholder="Nama Anak">
-            <button class="btn btn-primary btn-lg w-100 mb-2" onclick="initAndStart()">MULAI BALAPAN</button>
+            <p class="small text-muted mb-4">Ayo jawab semua soal untuk menang!</p>
+            <input type="text" id="playerName" class="form-control mb-3 text-center" placeholder="Ketik Nama Kamu">
+            <button type="button" class="btn btn-primary btn-lg w-100" onclick="mulaiPermainan()">MULAI BALAPAN</button>
         </div>
 
         <div id="quiz-area" style="display: none;">
             <div class="d-flex justify-content-between mb-2">
-                <span id="level-display" class="badge bg-warning">Level 1</span>
-                <span class="small fw-bold">Sisa Soal: <span id="queue-count">0</span></span>
+                <span class="badge bg-warning text-dark">Sisa Soal: <span id="queue-count">0</span></span>
             </div>
-            <h5 id="question-text" class="mb-4">Memuat pertanyaan...</h5>
-            <div id="options" class="d-grid gap-2"></div>
+            <h5 id="question-text" class="mb-4 fw-bold">...</h5>
+            <div id="options" class="d-grid gap-1"></div>
         </div>
     </div>
 </div>
 
 <script>
-    const questions = [
-        // Pengetahuan Alam & Umum
-        { q: "Apa warna daun yang sehat?", a: ["Hijau", "Ungu", "Biru"], c: 0 },
-        { q: "Hewan yang bunyinya 'Meong'?", a: ["Anjing", "Ayam", "Kucing"], c: 2 },
-        { q: "Planet tempat kita tinggal bernama?", a: ["Mars", "Bumi", "Venus"], c: 1 },
-        { q: "Benda langit yang muncul di siang hari?", a: ["Bulan", "Bintang", "Matahari"], c: 2 },
-        { q: "Hewan yang memiliki belalai panjang?", a: ["Jerapah", "Gajah", "Harimau"], c: 1 },
-        { q: "Alat untuk melihat waktu disebut?", a: ["Jam", "Kaca", "Kompas"], c: 0 },
-        
-        // Matematika Dasar
-        { q: "5 + 7 = ?", a: ["10", "12", "15"], c: 1 },
-        { q: "Berapakah 10 - 4?", a: ["6", "5", "7"], c: 0 },
-        { q: "Jika punya 3 apel lalu beli lagi 3, jadi berapa?", a: ["5", "6", "9"], c: 1 },
-        { q: "Berapakah 2 x 4?", a: ["6", "8", "10"], c: 1 },
-        { q: "Angka setelah 19 adalah?", a: ["18", "20", "21"], c: 1 },
-        
-        // Kebiasaan Sehat & Adab
-        { q: "Manakah makanan yang sehat?", a: ["Permen", "Buah", "Soda"], c: 1 },
-        { q: "Sebelum makan kita harus?", a: ["Tidur", "Lari", "Cuci Tangan"], c: 2 },
-        { q: "Gigi harus dibersihkan menggunakan?", a: ["Sabun", "Sikat Gigi", "Sisir"], c: 1 },
-        { q: "Sampah harus dibuang di?", a: ["Sungai", "Jalan", "Tempat Sampah"], c: 2 },
-        { q: "Berapa kali kita harus mandi dalam sehari?", a: ["1 Kali", "2 Kali", "5 Kali"], c: 1 },
-        
-        // Kewarganegaraan & Geografi
-        { q: "Ibu kota negara Indonesia adalah?", a: ["Jakarta", "Bandung", "Surabaya"], c: 0 },
-        { q: "Warna bendera Indonesia adalah?", a: ["Putih Merah", "Merah Putih", "Biru Putih"], c: 1 },
-        { q: "Lambang negara Indonesia adalah burung?", a: ["Elang", "Garuda", "Merpati"], c: 1 },
-        { q: "Presiden pertama Indonesia adalah?", a: ["Soeharto", "Soekarno", "Jokowi"], c: 1 },
-
-        // Tebak Kata & Logika
-        { q: "Aku bulat, bisa ditendang, permainan apa aku?", a: ["Basket", "Bola", "Kasti"], c: 1 },
-        { q: "Kendaraan yang berjalan di atas rel?", a: ["Bus", "Kapal", "Kereta Api"], c: 2 },
-        { q: "Rasa gula adalah?", a: ["Asin", "Pahit", "Manis"], c: 2 },
-        { q: "Awan di langit warnanya?", a: ["Putih", "Hijau", "Merah"], c: 0 }
+    // DATA PERTANYAAN
+    const masterQuestions = [
+        { q: "Apa warna daun yang sehat?", a: ["Hijau", "Merah", "Biru"], c: 0 },
+        { q: "5 + 7 = ?", a: ["10", "12", "14"], c: 1 },
+        { q: "Warna bendera Indonesia?", a: ["Merah Putih", "Putih Merah", "Biru"], c: 0 },
+        { q: "Hewan yang bunyinya Kukuruyuk?", a: ["Kucing", "Ayam Jago", "Sapi"], c: 1 },
+        { q: "Sebelum makan kita harus?", a: ["Tidur", "Cuci Tangan", "Lari"], c: 1 },
+        { q: "Ibu kota Indonesia?", a: ["Jakarta", "Surabaya", "Medan"], c: 0 },
+        { q: "Kita bernapas menghirup?", a: ["Air", "Udara", "Susu"], c: 1 }
     ];
 
     let score = 0;
@@ -96,57 +69,58 @@
     let questionQueue = [];
     let currentIndexInQueue = -1;
 
-    // Fungsi Suara yang lebih kompatibel
+    // FUNGSI SUARA (Dibuat lebih aman)
     function speak(text) {
         if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'id-ID';
-            msg.pitch = 1.5;
-            window.speechSynthesis.speak(msg);
+            try {
+                window.speechSynthesis.cancel();
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = 'id-ID';
+                msg.pitch = 1.4;
+                window.speechSynthesis.speak(msg);
+            } catch (e) { console.log("Audio Error"); }
         }
     }
 
-    // Inisialisasi suara (PENTING untuk browser)
-    function initAndStart() {
-        // Suara harus dipicu pertama kali oleh klik tombol user
-        speak(""); 
-        startGame();
-    }
+    // FUNGSI UTAMA START
+    function mulaiPermainan() {
+        const nameField = document.getElementById('playerName');
+        const name = nameField.value.trim() || "Teman";
 
-    function startGame() {
-        const nameInput = document.getElementById('playerName');
-        const name = nameInput.value || "Teman";
-        
-        questionQueue = [...masterQuestions];
+        // 1. Reset Data
+        questionQueue = JSON.parse(JSON.stringify(masterQuestions)); // Copy murni
         score = 0;
         timeLeft = 45;
         playerPos = 0;
         gameActive = true;
 
+        // 2. Update Tampilan
         document.getElementById('start-screen').style.display = 'none';
         document.getElementById('quiz-area').style.display = 'block';
         document.getElementById('player').style.left = '0%';
         document.getElementById('current-score').innerText = score;
+        document.getElementById('time-left').innerText = timeLeft;
 
-        speak("Halo " + name + "! Ayo kita balapan. Fokus ya!");
-        nextQuestion();
+        // 3. Jalankan Audio & Game
+        speak("Halo " + name + "! Ayo mulai!");
+        
+        clearInterval(timerInterval);
         startTimer();
+        nextQuestion();
     }
 
     function startTimer() {
-        if(timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if(!gameActive) return;
             timeLeft--;
             document.getElementById('time-left').innerText = timeLeft;
-            if (timeLeft <= 0) endGame("Yah, waktu habis! Skor kamu: " + score);
+            if (timeLeft <= 0) selesaikanGame("Waktu Habis! Skor kamu: " + score);
         }, 1000);
     }
 
     function nextQuestion() {
         if (questionQueue.length === 0) {
-            endGame("HEBAT! Kamu berhasil menjawab semua soal!");
+            selesaikanGame("HEBAT! Semua soal terjawab!");
             return;
         }
 
@@ -159,16 +133,17 @@
 
         const optionsDiv = document.getElementById('options');
         optionsDiv.innerHTML = '';
+        
         q.a.forEach((opt, i) => {
             const btn = document.createElement('button');
-            btn.className = 'btn btn-ans btn-outline-primary';
+            btn.className = 'btn btn-outline-primary btn-ans';
             btn.innerText = opt;
-            btn.onclick = () => checkAnswer(i);
+            btn.onclick = function() { cekJawaban(i); };
             optionsDiv.appendChild(btn);
         });
     }
 
-    function checkAnswer(idx) {
+    function cekJawaban(idx) {
         if (!gameActive) return;
 
         if (idx === currentAns) {
@@ -181,21 +156,21 @@
             questionQueue.splice(currentIndexInQueue, 1);
 
             if (playerPos >= 90) {
-                timeLeft += 5;
                 playerPos = 0;
                 setTimeout(() => { document.getElementById('player').style.left = '0%'; }, 400);
-                speak("Finish! Lanjut lagi!");
             }
-            setTimeout(nextQuestion, 500);
+            setTimeout(nextQuestion, 400);
         } else {
-            speak("Salah, coba lagi!");
-            document.getElementById('game-box').style.animation = 'shake 0.2s linear';
-            setTimeout(() => { document.getElementById('game-box').style.animation = ''; }, 200);
-            setTimeout(nextQuestion, 800);
+            speak("Salah!");
+            document.getElementById('game-box').style.animation = 'shake 0.2s';
+            setTimeout(() => { 
+                document.getElementById('game-box').style.animation = ''; 
+                nextQuestion(); 
+            }, 500);
         }
     }
 
-    function endGame(msg) {
+    function selesaikanGame(msg) {
         gameActive = false;
         clearInterval(timerInterval);
         speak(msg);
@@ -203,5 +178,6 @@
         location.reload();
     }
 </script>
+
 </body>
 </html>
