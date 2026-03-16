@@ -3,52 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cerdas Tangkas Dash - Fix Final</title>
+    <title>Cerdas Tangkas Dash - Leaderboard Edition</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #6c5ce7; font-family: 'Segoe UI', sans-serif; padding: 15px; display: flex; align-items: center; min-height: 100vh; }
-        #game-box { max-width: 500px; width: 100%; margin: auto; background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .track { height: 70px; background: #dfe6e9; border-radius: 12px; position: relative; margin: 15px 0; border-bottom: 5px solid #b2bec3; }
-        #player { font-size: 40px; position: absolute; left: 0; transition: left 0.4s ease; bottom: 5px; }
+        body { background-color: #6c5ce7; font-family: 'Segoe UI', sans-serif; padding: 20px; min-height: 100vh; }
+        .main-container { max-width: 900px; margin: auto; }
+        #game-box { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #leaderboard-box { background: rgba(255, 255, 255, 0.9); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        
+        .track { height: 70px; background: #dfe6e9; border-radius: 12px; position: relative; margin: 15px 0; border-bottom: 5px solid #b2bec3; overflow: hidden; }
+        #player { font-size: 40px; position: absolute; left: 0; transition: left 0.4s ease; bottom: 5px; transform: scaleX(-1); }
         .finish-line { position: absolute; right: 10px; top: 0; bottom: 0; width: 12px; background: repeating-linear-gradient(45deg, #000, #000 5px, #fff 5px, #fff 10px); }
-        .question-box { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 200px; border: 1px solid #ddd; }
-        .btn-ans { margin-bottom: 10px; font-weight: bold; border-radius: 10px; padding: 12px; width: 100%; border: 2px solid #6c5ce7; background: white; color: #6c5ce7; }
+        
+        .question-box { background: #f8f9fa; padding: 15px; border-radius: 15px; min-height: 180px; border: 1px solid #ddd; }
+        .btn-ans { margin-bottom: 8px; font-weight: bold; border-radius: 10px; padding: 12px; width: 100%; border: 2px solid #6c5ce7; background: white; color: #6c5ce7; transition: 0.2s; }
         .btn-ans:hover { background: #6c5ce7; color: white; }
-        #player { 
-            font-size: 40px; 
-            position: absolute; 
-            left: 0; 
-            transition: left 0.4s ease; 
-            bottom: 5px; 
-            /* Perintah untuk memutar ikon agar hadap kanan */
-            transform: scaleX(-1); 
-        }
+        
+        .rank-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-weight: bold; }
+        .rank-1 { color: #f1c40f; } /* Emas */
+        
+        @media (max-width: 768px) { .leaderboard-col { margin-top: 20px; } }
     </style>
 </head>
 <body>
 
-<div id="game-box">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="fw-bold">Skor: <span id="current-score" class="text-primary">0</span></div>
-        <div class="fw-bold text-danger">⏱️ <span id="time-left">45</span>s</div>
-    </div>
+<div class="container main-container">
+    <div class="row">
+        <div class="col-md-8">
+            <div id="game-box">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="fw-bold">Skor: <span id="current-score" class="text-primary fs-4">0</span></div>
+                    <div class="fw-bold text-danger fs-4">⏱️ <span id="time-left">45</span>s</div>
+                </div>
 
-    <div class="track">
-        <div id="player">🏃</div>
-        <div class="finish-line"></div>
-    </div>
+                <div class="track">
+                    <div id="player">🏃</div>
+                    <div class="finish-line"></div>
+                </div>
 
-    <div class="question-box text-center">
-        <div id="start-screen">
-            <h3 class="mb-3">Cerdas Tangkas Dash 🏁</h3>
-            <input type="text" id="playerName" class="form-control mb-3 text-center" placeholder="Nama Anak">
-            <button class="btn btn-primary btn-lg w-100 shadow" onclick="startNow()">MULAI BALAPAN</button>
+                <div class="question-box text-center">
+                    <div id="start-screen">
+                        <h3 class="mb-3">Cerdas Tangkas Dash 🏁</h3>
+                        <input type="text" id="playerName" class="form-control mb-3 text-center" placeholder="Nama Anak">
+                        <button class="btn btn-primary btn-lg w-100" onclick="startNow()">MULAI BALAPAN</button>
+                    </div>
+
+                    <div id="quiz-area" style="display: none;">
+                        <div class="small fw-bold mb-2 text-muted">Sisa Soal: <span id="queue-count">0</span></div>
+                        <h5 id="question-text" class="mb-4 fw-bold">...</h5>
+                        <div id="options"></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="quiz-area" style="display: none;">
-            <div class="small fw-bold mb-2 text-muted">Soal Tersisa: <span id="queue-count">0</span></div>
-            <h5 id="question-text" class="mb-4 fw-bold">...</h5>
-            <div id="options"></div>
+        <div class="col-md-4 leaderboard-col">
+            <div id="leaderboard-box">
+                <h4 class="text-center mb-3">🏆 TOP 5 JUARA</h4>
+                <div id="rank-list">
+                    </div>
+                <button class="btn btn-sm btn-outline-danger w-100 mt-3" style="font-size: 10px;" onclick="clearLeaderboard()">Reset Papan Skor</button>
+            </div>
         </div>
     </div>
 </div>
@@ -56,9 +71,7 @@
 <audio id="bg-music" loop><source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3" type="audio/mpeg"></audio>
 
 <script>
-    // Data pertanyaan dipastikan ada dan tidak kosong
-    const masterData = [
-         // Pengetahuan Alam & Umum
+     // Pengetahuan Alam & Umum
         { q: "Apa warna daun yang sehat?", a: ["Hijau", "Ungu", "Biru"], c: 0 },
         { q: "Hewan yang bunyinya 'Meong'?", a: ["Anjing", "Ayam", "Kucing"], c: 2 },
         { q: "Planet tempat kita tinggal bernama?", a: ["Mars", "Bumi", "Venus"], c: 1 },
@@ -79,13 +92,15 @@
         { q: "Gigi harus dibersihkan menggunakan?", a: ["Sabun", "Sikat Gigi", "Sisir"], c: 1 },
         { q: "Sampah harus dibuang di?", a: ["Sungai", "Jalan", "Tempat Sampah"], c: 2 },
         { q: "Berapa kali kita harus mandi dalam sehari?", a: ["1 Kali", "2 Kali", "5 Kali"], c: 1 },
+    { q: "Sebelum Tidur Kita harus membaca?", a: ["Doa Tidur", "Doa Makan", "Doa Ghufron"], c: 1 },    
         
         // Kewarganegaraan & Geografi
         { q: "Ibu kota negara Indonesia adalah?", a: ["Jakarta", "Bandung", "Surabaya"], c: 0 },
         { q: "Warna bendera Indonesia adalah?", a: ["Putih Merah", "Merah Putih", "Biru Putih"], c: 1 },
         { q: "Lambang negara Indonesia adalah burung?", a: ["Elang", "Garuda", "Merpati"], c: 1 },
         { q: "Presiden pertama Indonesia adalah?", a: ["Soeharto", "Soekarno", "Jokowi"], c: 1 },
-
+{ q: "Upacara Dilakukan Di hari", a: ["Minggu", "Sabtu", "Senin"], c: 3 },
+    
         // Tebak Kata & Logika
         { q: "Aku bulat, bisa ditendang, permainan apa aku?", a: ["Basket", "Bola", "Kasti"], c: 1 },
         { q: "Kendaraan yang berjalan di atas rel?", a: ["Bus", "Kapal", "Kereta Api"], c: 2 },
@@ -93,23 +108,14 @@
         { q: "Awan di langit warnanya?", a: ["Putih", "Hijau", "Merah"], c: 0 }
     ];
 
-    let score = 0, timeLeft = 45, gameActive = false, playerPos = 0, timerInterval, currentAns = 0, questionQueue = [], currentIndex = -1;
+    let score = 0, timeLeft = 45, gameActive = false, playerPos = 0, timerInterval, currentAns = 0, questionQueue = [], currentIndex = -1, currentPlayerName = "";
     const music = document.getElementById('bg-music');
 
-    function speak(text) {
-        if ('speechSynthesis' in window) {
-            window.speechSynthesis.cancel();
-            const msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'id-ID';
-            msg.pitch = 1.3;
-            window.speechSynthesis.speak(msg);
-        }
-    }
+    // Load Leaderboard saat pertama buka
+    window.onload = updateLeaderboardUI;
 
     function startNow() {
-        const name = document.getElementById('playerName').value.trim() || "Anak Cerdas";
-        
-        // RESET & LOAD DATA
+        currentPlayerName = document.getElementById('playerName').value.trim() || "Anak Cerdas";
         questionQueue = [...masterData];
         score = 0; timeLeft = 45; playerPos = 0; gameActive = true;
 
@@ -118,31 +124,25 @@
         document.getElementById('current-score').innerText = score;
         document.getElementById('player').style.left = '0%';
 
-        // Jalankan Musik
         try { music.volume = 0.2; music.play(); } catch(e){}
         
-        speak("Ayo " + name + ", semangat!");
-        
+        startTimer();
         nextQuestion();
-        
-        // Jalankan Timer
+    }
+
+    function startTimer() {
         if(timerInterval) clearInterval(timerInterval);
         timerInterval = setInterval(() => {
             if(!gameActive) return;
             timeLeft--;
             document.getElementById('time-left').innerText = timeLeft;
-            if(timeLeft <= 0) endGame("Waktu habis! Skor: " + score);
+            if(timeLeft <= 0) endGame("Waktu habis!");
         }, 1000);
     }
 
     function nextQuestion() {
         if (!gameActive) return;
-        
-        // Cek jika antrean kosong
-        if (questionQueue.length === 0) {
-            endGame("Luar biasa! Semua soal selesai!");
-            return;
-        }
+        if (questionQueue.length === 0) return endGame("Hebat! Semua soal selesai!");
 
         document.getElementById('queue-count').innerText = questionQueue.length;
         currentIndex = Math.floor(Math.random() * questionQueue.length);
@@ -153,7 +153,6 @@
 
         const optionsDiv = document.getElementById('options');
         optionsDiv.innerHTML = '';
-        
         q.a.forEach((opt, i) => {
             const btn = document.createElement('button');
             btn.className = 'btn btn-ans';
@@ -165,35 +164,35 @@
 
     function checkAns(idx) {
         if (!gameActive) return;
-
         if (idx === currentAns) {
             score += 10; playerPos += 15;
             document.getElementById('current-score').innerText = score;
             document.getElementById('player').style.left = Math.min(playerPos, 90) + '%';
-            speak("Hebat!");
-            
-            // Hapus dari antrean
             questionQueue.splice(currentIndex, 1);
-
             if (playerPos >= 90) {
                 playerPos = 0;
                 setTimeout(() => { document.getElementById('player').style.left = '0%'; }, 400);
             }
             setTimeout(nextQuestion, 400);
         } else {
-            speak("Coba lagi!");
-            // Tidak dihapus dari antrean, pindah soal agar tidak macet
             setTimeout(nextQuestion, 600);
         }
     }
 
-    function endGame(msg) {
-        gameActive = false;
-        clearInterval(timerInterval);
-        music.pause();
-        alert(msg);
-        location.reload();
+    function saveScore(name, finalScore) {
+        let history = JSON.parse(localStorage.getItem('dashLeaderboard')) || [];
+        history.push({ name: name, score: finalScore });
+        // Urutkan dari skor tertinggi
+        history.sort((a, b) => b.score - a.score);
+        // Ambil Top 5 saja
+        history = history.slice(0, 5);
+        localStorage.setItem('dashLeaderboard', JSON.stringify(history));
+        updateLeaderboardUI();
     }
-</script>
-</body>
-</html>
+
+    function updateLeaderboardUI() {
+        const history = JSON.parse(localStorage.getItem('dashLeaderboard')) || [];
+        const listDiv = document.getElementById('rank-list');
+        listDiv.innerHTML = history.length === 0 ? '<p class="text-center text-muted">Belum ada rekor.</p>' : '';
+        
+        history.forEach((data, index) =>
